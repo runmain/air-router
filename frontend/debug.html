@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title data-i18n="debugPage">调试页面</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/language-switcher.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Toast notification -->
+        <div id="toast" class="toast"></div>
+
+        <header>
+            <div class="header-content">
+                <h1><a href="/" class="header-link" data-i18n="debugPage">调试页面</a></h1>
+                <div class="language-switcher">
+                    <button id="langEn" class="lang-btn" title="English">EN</button>
+                    <span class="lang-divider">|</span>
+                    <button id="langZh" class="lang-btn" title="简体中文">中文</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Model selection with search -->
+        <div class="search-bar">
+            <div class="search-input-wrapper">
+                <!-- Custom searchable dropdown -->
+                <div id="modelDropdown" class="custom-dropdown">
+                    <div id="dropdownDisplay" class="dropdown-display" data-i18n="selectModel">选择模型...</div>
+                    <button id="dropdownArrow" class="dropdown-arrow">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                    </button>
+                    <div id="dropdownOptions" class="dropdown-options hidden">
+                        <input type="text" id="modelSearchInput" class="dropdown-search" data-i18n-placeholder="searchModel" placeholder="搜索模型...">
+                        <div id="optionsList" class="options-list"></div>
+                    </div>
+                </div>
+            </div>
+            <button id="reloadBtn" class="btn" data-i18n="refresh">刷新</button>
+        </div>
+
+        <div id="accountsGrid" class="accounts-grid">
+            <!-- Account cards will be loaded here dynamically -->
+        </div>
+    </div>
+
+    <script src="/static/js/i18n.js"></script>
+    <script src="/static/i18n/zh-CN.js"></script>
+    <script src="/static/i18n/en.js"></script>
+    <script src="/static/js/debug.js"></script>
+</body>
+</html>

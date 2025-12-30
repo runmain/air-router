@@ -1,0 +1,23 @@
+# Database file
+*.db
+*.db-shm
+*.db-wal
+
+# Log files
+*.log
+app.log
+
+# Temporary files
+*.tmp
+*.swp
+*.swo
+
+# IDE files
+.vscode/
+.idea/
+*.iml
+
+# Go build files
+binary
+*.exe
+*.out

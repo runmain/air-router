@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title data-i18n="accountManagement">账户管理</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/language-switcher.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Toast notification -->
+        <div id="toast" class="toast"></div>
+
+        <!-- Confirm dialog -->
+        <div id="confirmDialog" class="confirm-dialog hidden">
+            <div class="confirm-content">
+                <div class="confirm-header">
+                    <h3 id="confirmTitle" data-i18n="confirm">确认</h3>
+                </div>
+                <div class="confirm-body" id="confirmMessage" data-i18n="confirmDelete">确定要执行此操作吗？</div>
+                <div class="confirm-footer">
+                    <button id="confirmCancel" class="btn btn-secondary" data-i18n="cancel">取消</button>
+                    <button id="confirmOk" class="btn btn-danger" data-i18n="ok">确定</button>
+                </div>
+            </div>
+        </div>
+
+        <header>
+            <div class="header-content">
+                <h1><a href="/debug" class="header-link" data-i18n="accountManagement">账户管理</a></h1>
+                <div class="language-switcher">
+                    <button id="langEn" class="lang-btn" title="English">EN</button>
+                    <span class="lang-divider">|</span>
+                    <button id="langZh" class="lang-btn" title="简体中文">中文</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Search and action bar -->
+        <div class="search-bar">
+            <div class="search-input-wrapper">
+                <input type="text" id="searchInput" class="search-input" data-i18n-placeholder="searchAccount" placeholder="搜索账户名称...">
+                <button id="clearSearch" class="clear-search-btn">×</button>
+            </div>
+            <button id="addAccountBtn" class="btn btn-add" data-i18n="addAccount">+ 添加账户</button>
+        </div>
+
+        <div id="accountsGrid" class="accounts-grid">
+            <!-- Account cards will be loaded here dynamically -->
+        </div>
+
+        <!-- Pagination -->
+        <div id="pagination" class="pagination">
+            <!-- Pagination buttons will be loaded here dynamically -->
+        </div>
+    </div>
+
+    <!-- Modal for adding/editing accounts -->
+    <div id="accountModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle" data-i18n="addAccountTitle">添加账户</h2>
+                <button class="close-btn">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="accountForm">
+                    <input type="hidden" id="accountId">
+                    <div class="form-group">
+                        <label for="name" data-i18n="name">名称</label>
+                        <input type="text" id="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="base_url" data-i18n="baseURL">基础URL</label>
+                        <input type="url" id="base_url" pattern="https?://.*" data-i18n-title="baseURLError" title="URL必须以http://或https://开头" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="api_key" data-i18n="apiKey">API密钥</label>
+                        <input type="text" id="api_key" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="ext" data-i18n="extInfo">扩展信息</label>
+                        <textarea id="ext"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button id="cancelBtn" class="btn btn-secondary" data-i18n="cancel">取消</button>
+                <button id="saveBtn" class="btn" data-i18n="saveAccount">保存账户</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/i18n.js"></script>
+    <script src="/static/i18n/zh-CN.js"></script>
+    <script src="/static/i18n/en.js"></script>
+    <script src="/static/js/script.js"></script>
+</body>
+</html>
