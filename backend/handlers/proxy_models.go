@@ -15,7 +15,7 @@ import (
 // HandleModels handles GET /v1/models (returns cached model list)
 func HandleModels(c *gin.Context) {
 	// Check DISABLE_CLAUDE environment variable
-	disableClaude := os.Getenv("DISABLE_CLAUDE") != "false"
+	disableClaude := os.Getenv("DISABLE_CLAUDE") == "true"
 
 	// Check X-Enable-Claude header - if true, disable the filter
 	if c.GetHeader("X-Enable-Claude") == "true" {
@@ -31,17 +31,28 @@ func HandleModels(c *gin.Context) {
 
 	var modelList []cache.ModelInfo
 	for _, modelInfo := range modelInfos {
-		// Skip models containing "claude" if DISABLE_CLAUDE is true (default)
+		// Skip models containing "claude" if DISABLE_CLAUDE is true
 		if disableClaude && strings.Contains(strings.ToLower(modelInfo.ID), "claude") {
 			log.Printf("[Models] Skipped model due to DISABLE_CLAUDE: %s", modelInfo.ID)
 			continue
+		}
+
+		// Get accounts for this model to show as owners
+		accounts := cache.GetAccountsForModel(modelInfo.ID)
+		accountNames := make([]string, 0, len(accounts))
+		for _, acc := range accounts {
+			accountNames = append(accountNames, acc.Name)
+		}
+		ownedBy := strings.Join(accountNames, ", ")
+		if ownedBy == "" {
+			ownedBy = modelInfo.OwnedBy
 		}
 
 		modelList = append(modelList, cache.ModelInfo{
 			ID:                     modelInfo.ID,
 			Object:                 modelInfo.Object,
 			Created:                modelInfo.Created,
-			OwnedBy:                modelInfo.OwnedBy,
+			OwnedBy:                ownedBy,
 			SupportedEndpointTypes: modelInfo.SupportedEndpointTypes,
 			CompatibleProviders:    modelInfo.CompatibleProviders,
 		})
