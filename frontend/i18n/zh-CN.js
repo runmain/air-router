@@ -46,7 +46,7 @@ const zhCN = {
   assModelIds: "关联模型",
   modelEnabled: "启用模型",
   customMode: "自定义",
-  customModelIdPlaceholder: "支持通配符，如: deepseek*",
+  customModelIdPlaceholder: "支持通配符和多个ID，如: deepseek*, glm-4 (逗号分隔)",
   customModeOnly: "自定义模式下只能选择自定义选项",
   customModeRequired: "自定义模式下必须输入模型ID",
   assModelIdsRequired: "请至少选择一个关联模型或使用自定义模式",

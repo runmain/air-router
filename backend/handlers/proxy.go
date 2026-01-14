@@ -194,7 +194,7 @@ func (h *ProxyHandler) handleAllInOneProxy(c *gin.Context, path string) {
 
 	// Randomly select one actual model ID using global counter
 	selectedModelID := h.getRandomModelID(actualModelIDs)
-	log.Printf("[Proxy /v1/%s] All-in-one mode - Selected actual model ID: %s from %v", path, selectedModelID, actualModelIDs)
+	//log.Printf("[Proxy /v1/%s] All-in-one mode - Selected actual model ID: %s from %s", path, selectedModelID, model.ModelID)
 
 	// Check if selectedModelID is a pattern (ends with *)
 	if len(selectedModelID) > 0 && selectedModelID[len(selectedModelID)-1] == '*' {
@@ -244,7 +244,7 @@ func (h *ProxyHandler) handleAllInOneProxy(c *gin.Context, path string) {
 			selectedAccount = h.getRandomAccount(accounts)
 		}
 
-		log.Printf("[Proxy /v1/%s] All-in-one mode - Attempt %d/%d with account: %s (ID: %d)", path, attempt+1, maxAttempts, selectedAccount.Name, selectedAccount.ID)
+		log.Printf("[Proxy /v1/%s] All-in-one mode - Attempt %d/%d with account: %s (ID: %d),model:%s", path, attempt+1, maxAttempts, selectedAccount.Name, selectedAccount.ID,selectedModelID)
 
 		// Update request body with the actual model ID
 		requestBody["model"] = selectedModelID

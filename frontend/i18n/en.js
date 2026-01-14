@@ -46,7 +46,7 @@ const enUS = {
   assModelIds: "Associated Models",
   modelEnabled: "Enable Model",
   customMode: "Custom",
-  customModelIdPlaceholder: "Supports wildcard, e.g: deepseek*",
+  customModelIdPlaceholder: "Supports wildcards and multiple IDs, e.g: deepseek*, glm-4 (comma separated)",
   customModeOnly: "In custom mode, only custom option can be selected",
   customModeRequired: "Custom model ID is required in custom mode",
   assModelIdsRequired: "Please select at least one associated model or use custom mode",

@@ -336,16 +336,20 @@ function loadAssociatedModelCheckboxes(selectedIds = []) {
                 ? allModelIds.filter(id => id !== currentModelId)
                 : allModelIds;
 
-            // Check if we're in custom mode (single selected ID that's not in the list)
+            // Check if we're in custom mode (any selected ID is not in the list)
             let isCustomMode = false;
             let customValue = '';
             let actualSelectedIds = selectedIds;
 
-            if (selectedIds.length === 1 && !filteredModelIds.includes(selectedIds[0])) {
-                // This is custom mode
-                isCustomMode = true;
-                customValue = selectedIds[0];
-                actualSelectedIds = ['__CUSTOM__'];
+            if (selectedIds.length > 0) {
+                // Check if ANY selected ID is custom (not in filteredModelIds)
+                const hasCustom = selectedIds.some(id => !filteredModelIds.includes(id));
+                if (hasCustom) {
+                    // This is custom mode - join all IDs with commas
+                    isCustomMode = true;
+                    customValue = selectedIds.join(', ');
+                    actualSelectedIds = ['__CUSTOM__'];
+                }
             }
 
             // Render the search input and checkboxes
@@ -634,8 +638,12 @@ function saveModel() {
             showToast(window.i18n?.t ? window.i18n.t('customModeRequired') : '自定义模式下必须输入模型ID', 'error');
             return;
         }
-        // In custom mode, only use the custom value
-        assModelIds = [customValue];
+        // In custom mode, split by comma and trim each ID
+        assModelIds = customValue.split(',').map(id => id.trim()).filter(id => id.length > 0);
+        if (assModelIds.length === 0) {
+            showToast(window.i18n?.t ? window.i18n.t('customModeRequired') : '自定义模式下必须输入模型ID', 'error');
+            return;
+        }
     } else {
         // Normal mode: get all checked checkboxes except custom
         assModelIds = Array.from(otherCheckboxes).map(cb => cb.value);
