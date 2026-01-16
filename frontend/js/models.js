@@ -1,6 +1,6 @@
 // Model management functions
 let currentModelsPage = 1;
-const MODELS_PER_PAGE = 10;
+const MODELS_PER_PAGE = 6;
 
 // Initialize model management functionality
 function initModelManagement() {

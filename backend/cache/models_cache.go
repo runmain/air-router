@@ -51,14 +51,29 @@ type ModelInfoCache struct {
 var GlobalModelInfoCache = &ModelInfoCache{
 	modelInfos: make(map[string]*ModelInfo),
 }
+var keyModelCache = []string{
+	"image",
+	"vedio",
+	"embedding",
+	"audio",
+	"tools",
+	"retrieval",
+	"fine-tuning",
+	"moderation",
+	"vector",
+	"claude",
+	"codex",
+	"nano",
+	"banana",
+}
 
 // StartModelsCacheTask starts a background task to periodically refresh models cache
 func StartModelsCacheTask(accountDB *db.AccountDB, modelDB *db.ModelDB) {
 	// Initial fetch
 	RefreshModelsCache(accountDB, modelDB)
 
-	// Refresh every 6 hours
-	ticker := time.NewTicker(6 * time.Hour)
+	// Refresh every 3 hours
+	ticker := time.NewTicker(3 * time.Hour)
 	defer ticker.Stop()
 
 	for range ticker.C {
@@ -87,18 +102,47 @@ func RefreshModelsCache(accountDB *db.AccountDB, modelDB *db.ModelDB) {
 	// Also track model info to build the response
 	modelInfoMap := make(map[string]*ModelInfo)
 
-	// Fetch models from each account
+	// Use WaitGroup to track goroutines
+	var wg sync.WaitGroup
+	// Channel to collect results from goroutines
+	type fetchResult struct {
+		account  models.Account
+		response *ModelsResponse
+		err      error
+	}
+	resultChan := make(chan fetchResult, len(accounts))
+
+	// Fetch models from each account concurrently
 	for _, account := range accounts {
-		response, err := fetchModelsFromAccount(account)
-		if err != nil {
-			log.Printf("[ModelsCache] Error fetching models from account %s (ID: %d): %v", account.Name, account.ID, err)
-			continue // Continue with next account
+		wg.Add(1)
+		go func(acc models.Account) {
+			defer wg.Done()
+			response, err := fetchModelsFromAccount(acc)
+			resultChan <- fetchResult{
+				account:  acc,
+				response: response,
+				err:      err,
+			}
+		}(account)
+	}
+
+	// Close channel when all goroutines complete
+	go func() {
+		wg.Wait()
+		close(resultChan)
+	}()
+
+	// Collect results from channel
+	for result := range resultChan {
+		if result.err != nil {
+			log.Printf("[ModelsCache] Error fetching models from account %s (ID: %d): %v", result.account.Name, result.account.ID, result.err)
+			continue
 		}
 
 		// Merge models into newModels and modelInfoMap
-		for _, model := range response.Data {
+		for _, model := range result.response.Data {
 			// Add account to the list for this model
-			newModels[model.ID] = append(newModels[model.ID], account)
+			newModels[model.ID] = append(newModels[model.ID], result.account)
 
 			// Store model info if not already present
 			if _, ok := modelInfoMap[model.ID]; !ok {
@@ -115,7 +159,7 @@ func RefreshModelsCache(accountDB *db.AccountDB, modelDB *db.ModelDB) {
 			}
 		}
 
-		log.Printf("[ModelsCache] Fetched %d models from account %s (ID: %d)", len(response.Data), account.Name, account.ID)
+		log.Printf("[ModelsCache] Fetched %d models from account %s (ID: %d)", len(result.response.Data), result.account.Name, result.account.ID)
 	}
 
 	// Replace the global cache with new data
@@ -297,7 +341,7 @@ func GetRandomModelIDByPattern(pattern string) (string, error) {
 	// Find matching models
 	var matches []string
 	for modelID := range GlobalModelsCache.models {
-		if strings.Contains(strings.ToLower(modelID), keyword) {
+		if strings.Contains(strings.ToLower(modelID), keyword) && valid(keyword, strings.ToLower(modelID)) {
 			matches = append(matches, modelID)
 		}
 	}
@@ -312,6 +356,28 @@ func GetRandomModelIDByPattern(pattern string) (string, error) {
 
 	index := common.GetRandomIndex(len(matches))
 	return matches[index], nil
+}
+
+// valid checks if a keyword-model pair is valid based on cache filtering rules
+// Returns true if the keyword contains any cache key OR if the model ID doesn't contain any cache key
+// This implements a filtering mechanism to exclude certain model types from matching
+// This prevents specialized models (image, video, embedding, etc.) from matching generic patterns like "gpt*"
+// but maybe error if keyword like gpt-image on some condition
+func valid(keyword, modelID string) bool {
+	// If keyword contains any cache key (image, video, embedding, etc.), allow it
+	for _, key := range keyModelCache {
+		if strings.Contains(keyword, key) {
+			return true
+		}
+	}
+	// If model ID contains any cache key, reject it (filter out specialized models)
+	for _, key := range keyModelCache {
+		if strings.Contains(modelID, key) {
+			return false
+		}
+	}
+	// Default: allow if neither keyword nor model ID contains cache keys
+	return true
 }
 
 // getRandomModelFromCache returns a random model ID from cache
@@ -329,4 +395,20 @@ func getRandomModelFromCache() string {
 
 	index := common.GetRandomIndex(len(allModels))
 	return allModels[index]
+}
+
+// FetchModelsFromAccountAPI fetches models directly from an account's /v1/models endpoint
+// Returns a list of model IDs
+func FetchModelsFromAccountAPI(account models.Account) ([]string, error) {
+	response, err := fetchModelsFromAccount(account)
+	if err != nil {
+		return nil, err
+	}
+
+	modelIDs := make([]string, 0, len(response.Data))
+	for _, model := range response.Data {
+		modelIDs = append(modelIDs, model.ID)
+	}
+
+	return modelIDs, nil
 }

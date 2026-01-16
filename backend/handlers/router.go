@@ -32,6 +32,7 @@ func SetupWebRouter(indexHandler *IndexHandler, accountHandler *AccountHandler, 
 			accounts.PUT("/:id", accountHandler.UpdateAccount)
 			accounts.DELETE("/:id", accountHandler.DeleteAccount)
 			accounts.PATCH("/:id", accountHandler.ToggleAccount)
+			accounts.GET("/:id/models", accountHandler.GetAccountModels)
 		}
 
 		models := api.Group("/models")
@@ -73,7 +74,7 @@ type Handlers struct {
 func NewHandlers(frontendPath string, accountDB *air_router_db.AccountDB, modelDB *air_router_db.ModelDB) *Handlers {
 	return &Handlers{
 		IndexHandler:   NewIndexHandler(frontendPath),
-		AccountHandler: NewAccountHandler(accountDB),
+		AccountHandler: NewAccountHandler(accountDB, modelDB),
 		ModelHandler:   NewModelHandler(modelDB),
 		ProxyHandler:   NewProxyHandler(accountDB, modelDB),
 	}

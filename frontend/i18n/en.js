@@ -139,6 +139,12 @@ const enUS = {
   selectModelFirst: "Please select a model first",
   noAccountsFound: "No accounts found supporting this model",
   loadingData: "Loading data...",
+
+  // Card Flip
+  viewModels: "Click to view models",
+  availableModels: "Available Models",
+  noModelsAvailable: "No models available",
+  totalModels: "${count} models",
 };
 
 // Register translation - wait for i18n module

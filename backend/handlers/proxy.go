@@ -110,7 +110,7 @@ func (h *ProxyHandler) HandleProxy(c *gin.Context) {
 		common.SendAPIError(c, http.StatusInternalServerError, common.ErrMsgFailedToReadBody, common.ErrTypeInternalServer)
 		return
 	}
-	log.Printf("[Proxy /v1/%s] Request body: %s", path, string(bodyBytes))
+	// log.Printf("[Proxy /v1/%s] Request body: %s", path, string(bodyBytes))
 
 	// Extract model id using common function
 	modelID := common.ExtractModelID(bodyBytes)
@@ -154,7 +154,7 @@ func (h *ProxyHandler) handleAllInOneProxy(c *gin.Context, path string) {
 		common.SendAPIError(c, http.StatusInternalServerError, common.ErrMsgFailedToReadBody, common.ErrTypeInternalServer)
 		return
 	}
-	log.Printf("[Proxy /v1/%s] All-in-one mode - Request body: %s", path, string(bodyBytes))
+	// log.Printf("[Proxy /v1/%s] All-in-one mode - Request body: %s", path, string(bodyBytes))
 
 	// Parse request body to map[string]interface{}
 	var requestBody map[string]interface{}
@@ -244,7 +244,7 @@ func (h *ProxyHandler) handleAllInOneProxy(c *gin.Context, path string) {
 			selectedAccount = h.getRandomAccount(accounts)
 		}
 
-		log.Printf("[Proxy /v1/%s] All-in-one mode - Attempt %d/%d with account: %s (ID: %d),model:%s", path, attempt+1, maxAttempts, selectedAccount.Name, selectedAccount.ID,selectedModelID)
+		log.Printf("[Proxy /v1/%s] All-in-one mode - Attempt %d/%d with account: %s (ID: %d),model:%s", path, attempt+1, maxAttempts, selectedAccount.Name, selectedAccount.ID, selectedModelID)
 
 		// Update request body with the actual model ID
 		requestBody["model"] = selectedModelID
@@ -268,7 +268,7 @@ func (h *ProxyHandler) handleAllInOneProxy(c *gin.Context, path string) {
 				defer resp.Body.Close()
 				removeFailedAccount(selectedAccount.ID)
 				utils.StreamResponse(c, resp)
-				log.Printf("[Proxy /v1/%s] All-in-one mode - Success with account %s (ID: %d)", path, selectedAccount.Name, selectedAccount.ID)
+				log.Printf("[Proxy /v1/%s] All-in-one mode - Success with account %s (ID: %d)", path, selectedAccount.BaseURL, selectedAccount.ID)
 				return
 			} else {
 				// Failed - add to failed cache and try next account
@@ -329,7 +329,7 @@ func (h *ProxyHandler) forwardRequest(c *gin.Context, path string, modelID strin
 		if success {
 			// Stream response
 			utils.StreamResponse(c, resp)
-			log.Printf("[ProxyService] Success with account %s (ID: %d)", account.Name, account.ID)
+			log.Printf("[ProxyService] Success with account %s (ID: %d)", account.BaseURL, account.ID)
 			return
 		} else {
 			// Return the failed response

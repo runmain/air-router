@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"net/http"
 
+	"air_router/cache"
 	"air_router/db"
 	"air_router/models"
 	"air_router/utils"
@@ -14,11 +15,13 @@ import (
 
 type AccountHandler struct {
 	AccountDB *db.AccountDB
+	ModelDB   *db.ModelDB
 }
 
-func NewAccountHandler(accountDB *db.AccountDB) *AccountHandler {
+func NewAccountHandler(accountDB *db.AccountDB, modelDB *db.ModelDB) *AccountHandler {
 	return &AccountHandler{
 		AccountDB: accountDB,
+		ModelDB:   modelDB,
 	}
 }
 
@@ -55,6 +58,10 @@ func (h *AccountHandler) CreateAccount(c *gin.Context) {
 	}
 
 	account.ID = int(id)
+
+	// Trigger cache refresh asynchronously
+	go cache.RefreshModelsCache(h.AccountDB, h.ModelDB)
+
 	c.JSON(http.StatusCreated, account)
 }
 
@@ -99,6 +106,9 @@ func (h *AccountHandler) UpdateAccount(c *gin.Context) {
 		return
 	}
 
+	// Trigger cache refresh asynchronously
+	go cache.RefreshModelsCache(h.AccountDB, h.ModelDB)
+
 	common.SendJSONResponse(c, http.StatusOK, account)
 }
 
@@ -114,6 +124,9 @@ func (h *AccountHandler) DeleteAccount(c *gin.Context) {
 		common.SendAPIError(c, http.StatusInternalServerError, err.Error(), common.ErrTypeInternalServer)
 		return
 	}
+
+	// Trigger cache refresh asynchronously
+	go cache.RefreshModelsCache(h.AccountDB, h.ModelDB)
 
 	c.Status(http.StatusNoContent)
 }
@@ -141,5 +154,42 @@ func (h *AccountHandler) ToggleAccount(c *gin.Context) {
 		return
 	}
 
+	// Trigger cache refresh asynchronously
+	go cache.RefreshModelsCache(h.AccountDB, h.ModelDB)
+
 	common.SendJSONResponse(c, http.StatusOK, account)
+}
+
+// GetAccountModels handles GET /api/accounts/:id/models
+// Returns all models available for a specific account by calling the account's API directly
+func (h *AccountHandler) GetAccountModels(c *gin.Context) {
+	id, err := common.ParseIDParam(c, "id")
+	if err != nil {
+		common.SendAPIError(c, http.StatusBadRequest, common.ErrMsgInvalidID, common.ErrTypeInvalidRequest)
+		return
+	}
+
+	// Get account
+	account, err := h.AccountDB.GetAccount(id)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			common.SendAPIError(c, http.StatusNotFound, common.ErrMsgAccountNotFound, common.ErrTypeNotFound)
+		} else {
+			common.SendAPIError(c, http.StatusInternalServerError, err.Error(), common.ErrTypeInternalServer)
+		}
+		return
+	}
+
+	// Fetch models directly from account's API
+	models, err := cache.FetchModelsFromAccountAPI(account)
+	if err != nil {
+		common.SendAPIError(c, http.StatusInternalServerError, "Failed to fetch models: "+err.Error(), common.ErrTypeInternalServer)
+		return
+	}
+
+	common.SendJSONResponse(c, http.StatusOK, gin.H{
+		"account_id": id,
+		"models":     models,
+		"total":      len(models),
+	})
 }

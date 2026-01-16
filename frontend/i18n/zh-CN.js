@@ -139,6 +139,12 @@ const zhCN = {
   selectModelFirst: "请先选择模型",
   noAccountsFound: "未找到支持此模型的账户",
   loadingData: "数据加载中...",
+
+  // Card Flip
+  viewModels: "点击查看模型",
+  availableModels: "可用模型",
+  noModelsAvailable: "暂无可用模型",
+  totalModels: "共 ${count} 个模型",
 };
 
 // Register translation - wait for i18n module

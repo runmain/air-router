@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"io"
 	"log"
 	"net/http"
 	"os"
@@ -130,8 +129,8 @@ func handleOpenAIModels(c *gin.Context) {
 	}
 
 	// Read request body for logging
-	bodyBytes, _ := io.ReadAll(c.Request.Body)
-	log.Printf("[Models] Request body: %s", string(bodyBytes))
+	// bodyBytes, _ := io.ReadAll(c.Request.Body)
+	// log.Printf("[Models] Request body: %s", string(bodyBytes))
 
 	modelList := buildOpenAIModelList(disableClaude)
 

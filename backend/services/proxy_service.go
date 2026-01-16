@@ -67,13 +67,15 @@ func (s *ProxyService) TryWithAccount(c *gin.Context, account models.Account, pa
 
 	resp, err := s.HTTPClient.Do(req)
 	if err != nil {
+		log.Printf("[TryWithAccount /v1%s] request error from account %s (ID: %d)", path, account.Name, account.ID)
 		return nil, false, nil
 	}
 
 	// Check status code
-	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+	if resp.StatusCode != 200 {
 		bodyBytes, _ := io.ReadAll(resp.Body)
 		resp.Body.Close()
+		log.Printf("[TryWithAccount /v1%s] response error : %s", path, string(bodyBytes))
 		return resp, false, bodyBytes
 	}
 
@@ -137,7 +139,7 @@ func (s *ProxyService) TryWithRetryModel(c *gin.Context, path string, modelID st
 			if success {
 				// Stream response
 				utils.StreamResponse(c, resp)
-				log.Printf("[ProxyService] Success with account %s (ID: %d)", account.Name, account.ID)
+				log.Printf("[ProxyService] Success with account %s (ID: %d)", account.BaseURL, account.ID)
 				return true, nil, nil
 			}
 		}

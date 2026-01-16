@@ -1,7 +1,7 @@
 // Global variables
 let editingAccountId = null;
 let currentPage = 1;
-let pageSize = 10;
+let pageSize = 6;
 let totalPages = 1;
 let totalItems = 0;
 let searchQuery = '';
@@ -416,8 +416,9 @@ function createAccountCard(account) {
         return document.createElement('div');
     }
 
-    const card = document.createElement('div');
-    card.className = 'account-card';
+    const wrapper = document.createElement('div');
+    wrapper.className = 'account-card-wrapper';
+    wrapper.dataset.accountId = account.id;
 
     // Safely format API key
     const apiKey = account.api_key || '';
@@ -454,54 +455,169 @@ function createAccountCard(account) {
     const enableText = window.i18n.t('enable');
     const disableText = window.i18n.t('disable');
     const claudeBadgeText = window.i18n.t('claude');
+    const viewModelsText = window.i18n.t('viewModels');
 
-    card.innerHTML = `
-        <div class="card-header">
-            <h3 class="card-title">${name}${claudeAvailable ? `<span class="claude-badge">${claudeBadgeText}</span>` : ''}</h3>
-            <span class="card-status ${enabled ? 'enabled' : 'disabled'}">
-                ${enabled ? activeText : inactiveText}
-            </span>
-        </div>
-        <div class="card-body">
-            <div class="card-field clickable">
-                <div>
-                    <div class="card-label">${baseURLLabel}</div>
-                    <div class="card-value clickable" onclick="openUrl('${baseUrl.replace(/'/g, "\\'")}')">
-                        <span id="${accountId}-url">${baseUrl}</span>
-                    </div>
-                </div>
-            </div>
-            <div class="card-field clickable">
-                <div>
-                    <div class="card-label">${apiKeyLabel}</div>
-                    <div class="card-value api-key clickable" onclick="copyToText('${accountId}-key', '${apiKey.replace(/'/g, "\\'")}')">
-                        <span id="${accountId}-key">${formattedApiKey}</span>
-                    </div>
-                </div>
-                <span class="copy-icon" onclick="copyToText('${accountId}-key', '${apiKey.replace(/'/g, "\\'")}')">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                    </svg>
+    wrapper.innerHTML = `
+        <div class="account-card">
+            <div class="card-header">
+                <h3 class="card-title">${name}${claudeAvailable ? `<span class="claude-badge">${claudeBadgeText}</span>` : ''}</h3>
+                <span class="card-status ${enabled ? 'enabled' : 'disabled'}">
+                    ${enabled ? activeText : inactiveText}
                 </span>
             </div>
-            <div class="card-field">
-                <div>
-                    <div class="card-label">${lastUpdatedLabel}</div>
-                    <div class="card-value">${updatedAt}</div>
+            <div class="card-body">
+                <div class="card-field clickable">
+                    <div>
+                        <div class="card-label">${baseURLLabel}</div>
+                        <div class="card-value clickable" onclick="event.stopPropagation(); openUrl('${baseUrl.replace(/'/g, "\\'")}')">
+                            <span id="${accountId}-url">${baseUrl}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-field clickable">
+                    <div>
+                        <div class="card-label">${apiKeyLabel}</div>
+                        <div class="card-value api-key clickable" onclick="event.stopPropagation(); copyToText('${accountId}-key', '${apiKey.replace(/'/g, "\\'")}')">
+                            <span id="${accountId}-key">${formattedApiKey}</span>
+                        </div>
+                    </div>
+                    <span class="copy-icon" onclick="event.stopPropagation(); copyToText('${accountId}-key', '${apiKey.replace(/'/g, "\\'")}')">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                        </svg>
+                    </span>
+                </div>
+                <div class="card-field">
+                    <div>
+                        <div class="card-label">${lastUpdatedLabel}</div>
+                        <div class="card-value">${updatedAt}</div>
+                    </div>
                 </div>
             </div>
+            <div class="card-actions">
+                <button class="card-btn edit" onclick="event.stopPropagation(); editAccount(${accountId})">${editText}</button>
+                <button class="card-btn delete" onclick="event.stopPropagation(); deleteAccount(${accountId})">${deleteText}</button>
+                <button class="card-btn toggle" onclick="event.stopPropagation(); toggleAccount(${accountId})">
+                    ${enabled ? disableText : enableText}
+                </button>
+            </div>
+            <div class="flip-hint">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M17 1l4 4-4 4"></path>
+                    <path d="M3 11V9a4 4 0 0 1 4-4h14"></path>
+                    <path d="M7 23l-4-4 4-4"></path>
+                    <path d="M21 13v2a4 4 0 0 1-4 4H3"></path>
+                </svg>
+                ${viewModelsText}
+            </div>
         </div>
-        <div class="card-actions">
-            <button class="card-btn edit" onclick="editAccount(${accountId})">${editText}</button>
-            <button class="card-btn delete" onclick="deleteAccount(${accountId})">${deleteText}</button>
-            <button class="card-btn toggle" onclick="toggleAccount(${accountId})">
-                ${enabled ? disableText : enableText}
-            </button>
+        <div class="account-card-back">
+            <div class="back-header">
+                <h4 class="back-title">${window.i18n.t('availableModels')}</h4>
+            </div>
+            <div class="models-list" id="models-list-${accountId}">
+                <div class="loading-models">${window.i18n.t('loading')}</div>
+            </div>
         </div>
     `;
 
-    return card;
+    // Add click event to flip card (only on title)
+    const cardTitle = wrapper.querySelector('.card-title');
+    cardTitle.style.cursor = 'pointer';
+    cardTitle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        flipCard(accountId);
+    });
+
+    // Add click event to back card to flip back (only on title)
+    const backTitle = wrapper.querySelector('.back-title');
+    backTitle.style.cursor = 'pointer';
+    backTitle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        flipCardBack(accountId);
+    });
+
+    return wrapper;
+}
+
+// Flip card to show models
+function flipCard(accountId) {
+    const wrapper = document.querySelector(`.account-card-wrapper[data-account-id="${accountId}"]`);
+    if (!wrapper) return;
+
+    wrapper.classList.add('flipped');
+    loadAccountModels(accountId);
+}
+
+// Flip card back to front
+function flipCardBack(accountId) {
+    const wrapper = document.querySelector(`.account-card-wrapper[data-account-id="${accountId}"]`);
+    if (!wrapper) return;
+
+    wrapper.classList.remove('flipped');
+}
+
+// Load models for an account
+function loadAccountModels(accountId) {
+    const modelsList = document.getElementById(`models-list-${accountId}`);
+    if (!modelsList) return;
+
+    // Always reload - don't cache
+    modelsList.innerHTML = `<div class="loading-models">${window.i18n.t('loading')}</div>`;
+
+    fetch(`/api/accounts/${accountId}/models`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            const models = data.models || [];
+
+            if (models.length === 0) {
+                modelsList.innerHTML = `<div class="no-models-back">${window.i18n.t('noModelsAvailable')}</div>`;
+                return;
+            }
+
+            // Sort models alphabetically
+            models.sort((a, b) => a.localeCompare(b));
+
+            let html = `<div class="models-count">${window.i18n.t('totalModels', { count: models.length })}</div>`;
+            html += '<div class="models-container">';
+            models.forEach(model => {
+                html += `<span class="model-item" onclick="copyModelName('${escapeHtmlGlobal(model).replace(/'/g, "\\'")}')">${escapeHtmlGlobal(model)}</span>`;
+            });
+            html += '</div>';
+
+            modelsList.innerHTML = html;
+        })
+        .catch(error => {
+            console.error('Error loading account models:', error);
+            modelsList.innerHTML = `<div class="no-models-back">${window.i18n.t('loadModelsFailed')}</div>`;
+        });
+}
+
+// Global escape HTML function
+function escapeHtmlGlobal(text) {
+    if (!text) return '';
+    return String(text)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
+// Copy model name to clipboard
+function copyModelName(modelName) {
+    navigator.clipboard.writeText(modelName).then(() => {
+        showToast(window.i18n.t('copiedToClipboard'), 'success');
+    }).catch(err => {
+        console.error('Copy failed:', err);
+        showToast(window.i18n.t('copyFailed'), 'error');
+    });
 }
 
 // Handle form submission (create or update account)
